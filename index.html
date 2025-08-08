@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id" class="no-js" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Situs portofolio/produk sederhana – template standar, cepat, responsif." />
+
+    <!-- SEO / Social -->
+    <title>MyWeb — Situs Saya</title>
+    <meta property="og:title" content="MyWeb — Situs Saya" />
+    <meta property="og:description" content="Template standar, cepat, responsif." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://example.com" />
+    <meta property="og:image" content="/assets/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Icons / PWA (opsional) -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Styles utama -->
+    <link rel="preload" href="/styles.css" as="style" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <script>
+      // Non-critical: hapus class no-js & prefer color scheme
+      document.documentElement.classList.remove('no-js');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) document.documentElement.dataset.theme = 'dark';
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Lewati ke konten</a>
+
+    <!-- Header / Navbar -->
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="Beranda MyWeb">
+          <img src="/assets/logo.svg" alt="Logo" class="brand__logo" />
+          <span class="brand__name">MyWeb</span>
+        </a>
+        <nav class="nav" aria-label="Navigasi utama">
+          <button class="nav__toggle" aria-expanded="false" aria-controls="primary-menu">Menu</button>
+          <ul id="primary-menu" class="nav__list">
+            <li><a href="#fitur">Fitur</a></li>
+            <li><a href="#karya">Karya</a></li>
+            <li><a href="#tentang">Tentang</a></li>
+            <li><a href="#kontak" class="btn btn--primary">Kontak</a></li>
+          </ul>
+        </nav>
+        <button class="theme-toggle" aria-label="Ubah tema" title="Ubah tema">🌗</button>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="beranda" aria-label="Bagian pembuka">
+      <div class="container hero__inner">
+        <h1 class="hero__title">Judul Utama Situs Anda</h1>
+        <p class="hero__subtitle">Slogan singkat yang jelas dan berfokus pada nilai.</p>
+        <div class="hero__cta">
+          <a href="#fitur" class="btn btn--primary">Lihat Fitur</a>
+          <a href="#karya" class="btn btn--ghost">Lihat Karya</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fitur -->
+    <section class="section" id="fitur" aria-labelledby="fitur-title">
+      <div class="container">
+        <h2 id="fitur-title" class="section__title">Fitur Utama</h2>
+        <ul class="grid features">
+          <li class="card">
+            <div class="card__icon" aria-hidden="true">⚡</div>
+            <h3 class="card__title">Cepat</h3>
+            <p class="card__text">Performa tinggi, ukuran aset minimal, dan caching yang tepat.</p>
+          </li>
+          <li class="card">
+            <div class="card__icon" aria-hidden="true">🎨</div>
+            <h3 class="card__title">Desain Bersih</h3>
+            <p class="card__text">Tipografi, skala ruang, dan warna yang konsisten.</p>
+          </li>
+          <li class="card">
+            <div class="card__icon" aria-hidden="true">🧩</div>
+            <h3 class="card__title">Modular</h3>
+            <p class="card__text">Komponen mudah dirawat dan dikembangkan.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Galeri / Karya -->
+    <section class="section section--alt" id="karya" aria-labelledby="karya-title">
+      <div class="container">
+        <h2 id="karya-title" class="section__title">Karya Terbaru</h2>
+        <ul class="grid gallery">
+          <li class="gallery__item"><img src="/assets/sample-1.jpg" alt="Judul karya 1" /></li>
+          <li class="gallery__item"><img src="/assets/sample-2.jpg" alt="Judul karya 2" /></li>
+          <li class="gallery__item"><img src="/assets/sample-3.jpg" alt="Judul karya 3" /></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Tentang -->
+    <section class="section" id="tentang" aria-labelledby="tentang-title">
+      <div class="container">
+        <h2 id="tentang-title" class="section__title">Tentang Saya/Kami</h2>
+        <p class="lead">Paragraf ringkas yang menjelaskan siapa Anda, latar belakang, dan fokus pekerjaan.</p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" aria-label="Ajakan tindakan">
+      <div class="container cta__inner">
+        <h2 class="cta__title">Siap berkolaborasi?</h2>
+        <a href="#kontak" class="btn btn--primary btn--lg">Hubungi Saya</a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer__inner">
+        <nav class="footer-nav" aria-label="Navigasi footer">
+          <a href="#beranda">Beranda</a>
+          <a href="#fitur">Fitur</a>
+          <a href="#karya">Karya</a>
+          <a href="#tentang">Tentang</a>
+          <a href="#kontak">Kontak</a>
+        </nav>
+        <p class="copyright">© <span id="year"></span> MyWeb. Semua hak cipta dilindungi.</p>
+      </div>
+    </footer>
+
+    <!-- Konten modal kontak (opsional) -->
+    <div id="kontak" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+      <div class="modal__dialog">
+        <h2 id="modal-title">Kontak</h2>
+        <form class="form" action="#" method="post">
+          <label>
+            <span>Nama</span>
+            <input type="text" name="name" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            <span>Pesan</span>
+            <textarea name="message" rows="5" required></textarea>
+          </label>
+          <button type="submit" class="btn btn--primary">Kirim</button>
+          <button type="button" class="btn btn--ghost" data-close>Close</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Script utama -->
+    <script src="/main.js" defer></script>
+    <noscript>Aktifkan JavaScript untuk pengalaman penuh.</noscript>
+  </body>
+</html>
