@@ -1,189 +1,184 @@
-/* =========
-   Util
-   ========= */
-const $ = (sel, ctx=document) => ctx.querySelector(sel);
-const $$ = (sel, ctx=document) => [...ctx.querySelectorAll(sel)];
+//Import the THREE.js library
+import * as THREE from "https://cdn.skypack.dev/three@0.129.0/build/three.module.js";
+// To allow for the camera to move around the scene
+import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
+// To allow for importing the .gltf file
+import { GLTFLoader } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js";
 
-/* =========
-   Smooth anchor + offset header
-   ========= */
-const header = $('.site-header');
-const headerH = () => header ? header.getBoundingClientRect().height : 0;
-
-$$('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const id = a.getAttribute('href');
-    if (id.length > 1 && $(id)) {
-      e.preventDefault();
-      const y = $(id).getBoundingClientRect().top + window.scrollY - headerH() - 8;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-      history.pushState(null, '', id);
-      $(id).setAttribute('tabindex', '-1'); // fokus untuk a11y
-      $(id).focus({ preventScroll: true });
-      setTimeout(()=> $(id).removeAttribute('tabindex'), 500);
-    }
+// --- Smooth nav button scrolling ---
+document.querySelectorAll('.nav-buttons .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 
-/* =========
-   Highlight nav saat section aktif
-   ========= */
-const sections = $$('#tentang, #karya, #eksperimen, #kontak');
-const links = new Map($$('.site-nav a').map(a => [a.getAttribute('href'), a]));
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(ent => {
-    if (ent.isIntersecting) {
-      const id = `#${ent.target.id}`;
-      $$('.site-nav a[aria-current="page"]').forEach(x => x.removeAttribute('aria-current'));
-      if (links.get(id)) links.get(id).setAttribute('aria-current', 'page');
-    }
-  });
-}, { rootMargin: `-${Math.max(0, headerH()-4)}px 0px -60% 0px`, threshold: 0.1 });
-sections.forEach(s => obs.observe(s));
-
-/* =========
-   Skip link fokus (aksesibilitas)
-   ========= */
-const skip = $('.skip-link');
-if (skip) {
-  skip.addEventListener('click', () => {
-    const main = $('#main');
-    main.setAttribute('tabindex','-1');
-    main.focus();
-    setTimeout(()=> main.removeAttribute('tabindex'), 300);
+// --- Parallax ---
+const layers = document.querySelectorAll('section .parallax-layer .shape');
+function onScrollParallax() {
+  layers.forEach(el => {
+    const section = el.closest('section');
+    const speed = parseFloat(section?.dataset?.speed) || 0.08;
+    const rect = section.getBoundingClientRect();
+    const offset = (window.innerHeight - rect.top) * speed;
+    el.style.transform = `translate3d(0, ${offset}px, 0) rotate(${offset / 40}deg)`;
   });
 }
+window.addEventListener('scroll', onScrollParallax, { passive: true });
+onScrollParallax();
 
-/* =========
-   Form kontak (dummy handler)
-   - Nonaktifkan submit default (belum ada backend)
-   ========= */
-const form = $('.contact-form');
-if (form) {
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    alert('Form belum dihubungkan ke backend. Silakan kirim email langsung 🙂');
-  });
-}
-
-/* =========
-   Placeholder Kanvas 3D
-   - Ringan: 2D canvas animasi sebagai placeholder
-   - Jika Three.js tersedia (window.THREE), pakai Three.js
-   - Lazy init saat #eksperimen terlihat
-   ========= */
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const expSection = $('#eksperimen');
-const canvasWrap = $('.canvas-wrap');
-
-function initPlaceholderCanvas() {
-  if (!canvasWrap || canvasWrap.querySelector('canvas')) return;
-  const c = document.createElement('canvas');
-  c.width = canvasWrap.clientWidth;
-  c.height = Math.max(300, canvasWrap.clientHeight);
-  canvasWrap.appendChild(c);
-
-  const ctx = c.getContext('2d');
-  let t = 0, raf;
-  function draw() {
-    const w = c.width, h = c.height;
-    ctx.clearRect(0,0,w,h);
-
-    // background gradient
-    const g = ctx.createLinearGradient(0,0,w,h);
-    g.addColorStop(0,'#0f1218'); g.addColorStop(1,'#1b2533');
-    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-
-    // rotating squares
-    const cx = w/2, cy = h/2;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(t*0.001);
-    for (let i=0; i<6; i++){
-      ctx.rotate(Math.PI/3);
-      ctx.globalAlpha = 0.15 + (i/10);
-      ctx.fillStyle = '#5cc8ff';
-      const s = 40 + i*22 + 12*Math.sin(t*0.002+i);
-      ctx.fillRect(-s/2, -s/2, s, s);
+// --- Highlight active nav ---
+const sections = document.querySelectorAll('main section');
+const navButtons = document.querySelectorAll('.nav-buttons .btn');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navButtons.forEach(b => b.classList.toggle('active', b.dataset.target === id));
     }
-    ctx.restore();
+  });
+}, { threshold: 0.6 });
+sections.forEach(s => observer.observe(s));
 
-    // text
-    ctx.globalAlpha = 1;
-    ctx.font = '600 16px system-ui, -apple-system, Segoe UI, Roboto';
-    ctx.fillStyle = '#9aa3ad';
-    ctx.textAlign = 'center';
-    ctx.fillText('Placeholder Kanvas — siap untuk Three.js', cx, h - 24);
 
-    t += 16;
-    if (!prefersReduced) raf = requestAnimationFrame(draw);
+  function initScene(containerId, modelPath, position, scale = 0.15) {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 30;
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById(containerId).appendChild(renderer.domElement);
+
+  const topLight = new THREE.DirectionalLight(0xffffff, 1);
+  topLight.position.set(400, 400, 400);
+  scene.add(topLight);
+
+  const ambientLight = new THREE.AmbientLight(0x333333, 5);
+  scene.add(ambientLight);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableZoom = false;
+  controls.enablePan = false;
+
+  let mouseX = window.innerWidth / 4;
+  let mouseY = window.innerHeight / 4;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  const loader = new GLTFLoader();
+  let object;
+  loader.load(
+    modelPath,
+    (gltf) => {
+      object = gltf.scene;
+      object.rotation.y = Math.PI / 2;
+      object.scale.set(scale, scale, scale); // Use custom scale
+      object.position.set(position.x, position.y, position.z);
+      scene.add(object);
+    }
+  );
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (object) {
+      object.rotation.y = -3 + (mouseX / window.innerWidth) * 3;
+      object.rotation.x = -1.2 + (mouseY * 2.5 / window.innerHeight);
+    }
+    renderer.render(scene, camera);
   }
-  draw();
+  animate();
+}
 
-  // Resize
-  const ro = new ResizeObserver(() => {
-    c.width = canvasWrap.clientWidth;
-    c.height = Math.max(300, canvasWrap.clientHeight);
-    if (prefersReduced && raf) cancelAnimationFrame(raf);
-    if (!prefersReduced) draw();
+// Positions and scales
+initScene('container3D', './models/gibal/scene.gltf', { x: -2, y: 10, z: 0 }); // Left
+initScene('container3D2', './models/gibal2/scene.gltf', { x: -2, y: 15, z: 0 }, 1); // Top, bigger
+initScene('container3D3', './models/gibal3/scene.gltf', { x: 10, y: 0, z: 0 }); // Right
+initScene('container3D4', './models/gibal4/scene.gltf', { x: 0, y: -10, z: 0 }, 0.8); // Bottom
+
+
+//arrow-down home button
+document.querySelector('.scroll-down').addEventListener('click', () => {
+  document.querySelector('#profile').scrollIntoView({ 
+    behavior: 'smooth' 
   });
-  ro.observe(canvasWrap);
-}
+});
 
-async function initThreeIfAvailable() {
-  if (!window.THREE) return false;
-  try {
-    const { Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshNormalMaterial, Mesh } = window.THREE;
-    const scene = new Scene();
-    const camera = new PerspectiveCamera(60, canvasWrap.clientWidth / 300, 0.1, 100);
-    camera.position.z = 3;
+// portfolio pop-up
+const projects = document.querySelectorAll('.project');
+const modal = document.getElementById('projectModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMedia = document.getElementById('modalMedia'); // container for image OR video
+const modalDesc = document.getElementById('modalDesc');
+const closeModal = document.getElementById('closeModal');
 
-    const renderer = new WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(canvasWrap.clientWidth, Math.max(300, canvasWrap.clientHeight));
-    canvasWrap.innerHTML = '';
-    canvasWrap.appendChild(renderer.domElement);
+projects.forEach(project => {
+    project.addEventListener('click', () => {
+        modalTitle.textContent = project.dataset.title;
+        modalDesc.textContent = project.dataset.desc;
 
-    const mesh = new Mesh(new BoxGeometry(), new MeshNormalMaterial());
-    scene.add(mesh);
+        // Clear old content
+        modalMedia.innerHTML = "";
 
-    function onResize(){
-      const w = canvasWrap.clientWidth;
-      const h = Math.max(300, canvasWrap.clientHeight);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+        if (project.dataset.video) {
+            // If project has a video
+            const video = document.createElement('video');
+            video.src = project.dataset.video;
+            video.controls = true;
+            video.autoplay = true;
+            video.muted = false;
+            video.loop = false;
+            video.style.width = "100%";
+            video.style.borderRadius = "10px";
+            modalMedia.appendChild(video);
+        } else if (project.dataset.img) {
+            // If project has an image
+            const img = document.createElement('img');
+            img.src = project.dataset.img;
+            img.alt = project.dataset.title;
+            modalMedia.appendChild(img);
+        }
+
+        modal.style.display = 'flex';
+    });
+});
+
+// close modal
+closeModal.addEventListener('click', () => {
+    modal.style.display = 'none';
+    modalMedia.innerHTML = ""; // clear media so video stops
+});
+
+// close modal when clicking outside content
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+        modalMedia.innerHTML = ""; // clear media so video stops
     }
-    new ResizeObserver(onResize).observe(canvasWrap);
+});
 
-    let raf;
-    const animate = () => {
-      mesh.rotation.y += 0.01; mesh.rotation.x += 0.005;
-      renderer.render(scene, camera);
-      if (!prefersReduced) raf = requestAnimationFrame(animate);
-    };
-    animate();
-    return true;
-  } catch (e) {
-    console.warn('Gagal init Three.js:', e);
-    return false;
+//backtotop
+  const backToTop = document.getElementById("backToTop");
+
+  function toggleArrow() {
+    backToTop.style.display = window.scrollY > 400 ? "block" : "none";
   }
-}
 
-/* Lazy init saat terlihat */
-if (expSection && canvasWrap) {
-  const once = new IntersectionObserver(async (ents, ob) => {
-    if (ents.some(ent => ent.isIntersecting)) {
-      ob.disconnect();
-      // Jika Three.js tersedia (mis. kamu menaruh /libs/three.min.js & import di HTML), pakai itu.
-      const usedThree = await initThreeIfAvailable();
-      if (!usedThree) initPlaceholderCanvas();
-    }
-  }, { rootMargin: '0px 0px -20% 0px', threshold: 0.2 });
-  once.observe(expSection);
-}
+  // Run on load
+  window.addEventListener("load", toggleArrow);
+  // Run on scroll
+  window.addEventListener("scroll", toggleArrow);
 
-/* =========
-   Kualitas hidup kecil
-   ========= */
-// Tambah kelas ke body saat JS aktif
-document.documentElement.classList.add('js-enabled');
+  // scroll to #home smoothly
+  backToTop.addEventListener("click", () => {
+    document.getElementById("home").scrollIntoView({ behavior: "smooth" });
+  });
